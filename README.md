@@ -1,2 +1,2 @@
 Copyright Vincent Siu
-Weather program that I created using Python
+Programs I created in Python in my free time

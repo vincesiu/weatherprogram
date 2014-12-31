@@ -1,10 +1,48 @@
 # Vincent Siu
-# 20140623
+# 20140623 created 
+# 20141230 last updated
 # GUI module
 
-from Tkinter import *
-import weather_m_APIwork    
+from Tkinter import * 
 import tkMessageBox
+import urllib2
+import json
+
+def getCurrentWeather(zip):
+   """
+   Usage: given an input of a 5 digit zip code, returns a list in unicode encoding, 
+   in format: current temp C, current temp F, current city, current conditions; if 
+   zipcode does not exist, returns [-1, -1, -1]
+   """
+   weather_dict = dataz(zip)
+   if 'error' in weather_dict['data']:
+      values = [-1,-1,-1,-1]
+      return values
+   else:
+      current_temp_C = weather_dict['data']['current_condition'][0]['temp_C']
+      current_temp_F = weather_dict['data']['current_condition'][0]['temp_F']
+      current_city = weather_dict['data']['nearest_area'][0]["areaName"][0]["value"]
+      current_condition = weather_dict['data']['current_condition'][0]['weatherDesc'][0]['value']
+      values = [current_temp_C, current_temp_F,current_city,current_condition]
+      return values
+
+
+def dataz(zip):
+   """
+   Usage: given an input of a 5 digit zip code, returns json data in dictionary format
+   which holds weather data for the given zip code
+   """
+   #http://developer.worldweatheronline.com
+   #Key:
+   #2005fce4b3dcf62848d6a262305af50aff6caf4d
+   key = "2005fce4b3dcf62848d6a262305af50aff6caf4d"
+   url = "http://api.worldweatheronline.com/free/v1/weather.ashx?q=%s&format=json&extra=localObsTime&includelocation=yes&key=%s" %(zip, key)
+   raw_data = urllib2.urlopen(url)
+   parsed_data = raw_data.read()
+   raw_data.close()
+   weather_dict = json.loads(parsed_data)
+   return weather_dict
+
 
 class WeatherApp:
    def __init__(self, parent=0):
@@ -55,19 +93,19 @@ class WeatherApp:
    			errorText = "Invalid zip provided, \n please try again."
    		if errorCode == 2:
    			errorText = "Please provide a 5 digit zip code, \n and try again."
-   		tkMessageBox.showinfo("Error: Code %s!!!" % errorCode, errorText)
+   		tkMessageBox.showinfo("Error: Code %s" % errorCode, errorText)
 
    def bEnterPress(self):
    		zip = self.retrieve_input()
    		if self.checkValidZip(zip) == 0:
    			self.errorBox(2)
    			return
-   		wList = weather_m_APIwork.getCurrentWeather(zip)
+   		wList = getCurrentWeather(zip)
    		if wList[0] == -1:
    			self.errorBox(1)
    		else:
    			tkMessageBox.showinfo(	"Weather", "Currently in %s:\n%s degrees Celcius \n%s degrees Farenheit\nConditions: %s" % (wList[2], wList[0], wList[1], wList[3]))
 
-      
-app = WeatherApp()
-app.mainWindow.mainloop()
+if __name__ == "__main__":
+   app = WeatherApp()
+   app.mainWindow.mainloop()
